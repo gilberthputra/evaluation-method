@@ -4,60 +4,51 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import math
+    
+def confusion_matrix(actual, predictions, draw = False):
+    matrix_df = pd.crosstab(index = actual, 
+                               columns = predictions, 
+                               rownames = ['Actual'], 
+                               colnames = ['Predicted'])
 
-class evaluate:
-    def __init__(self, predictions, actual):
-        self.predictions = predictions
-        self.actual = actual
-        
-        self.accuracy = None
-        self.recall = None
-        self.precision = None
-        self.f_score = None
-    
-    def confusion_matrix(self, draw = False):
-        matrix_df = pd.crosstab(index = self.actual, 
-                                   columns = self.predictions, 
-                                   rownames = ['Actual'], 
-                                   colnames = ['Predicted'])
-        
-        if (draw):
-            sns.heatmap(matrix_df, annot = True)
-            
-        return matrix_df
-    
-    def compute_accuracy(self):
-        self.accuracy = self.confusion_matrix().to_numpy().trace() * 100 / len(self.predictions)
-    
-    def recall_precision(self, level = 'micro'):
-        arr = self.confusion_matrix().to_numpy()
-        
-        rows = np.sum(arr, axis = 1)
-        columns = np.sum(arr, axis = 0)
-        
-        diagonals = np.diag(arr)
-        
-        if (level == 'micro'):
-            recall = sum(diagonals) * 100 / sum(rows)
-            precision = sum(diagonals) * 100 / sum(columns)
-        elif (level == 'macro'):
-            recall = sum((diagonals / rows)) * 100 / len(diagonals)
-            precision = sum((diagonals / columns)) * 100 / len(diagonals)
-        elif (level == 'weighted'):
-            recall = sum((diagonals / rows) * (rows / np.sum(arr))) * 100
-            precision = sum((diagonals / columns) * (rows / np.sum(arr))) * 100
-        
-        self.recall = recall
-        self.precision = precision
-    
-    def compute_f_score(self, beta = 1.0):
-        numerator = (1 + math.pow(beta, 2)) * self.recall * self.precision
-        denominator = (math.pow(beta, 2) * self.precision) + self.recall
-        
-        self.f_score = numerator/denominator
-    
-    def result(self, level = 'micro', beta = 1.0):
-        self.compute_accuracy()
-        self.recall_precision(level)
-        self.compute_f_score(beta)
-        print(f"{level}\n Accuracy: {self.accuracy}, Recall: {self.recall}, Precision: {self.precision}, F1-Score:{self.f_score}")
+    if (draw):
+        sns.heatmap(matrix_df, annot = True)
+
+    return matrix_df
+
+def compute_accuracy(matrix_df, predictions):
+    accuracy = matrix_df.to_numpy().trace() * 100 / len(predictions)
+    return accuracy
+
+def recall_precision(matrix_df, level = 'micro'):
+    arr = matrix_df.to_numpy()
+
+    rows = np.sum(arr, axis = 1)
+    columns = np.sum(arr, axis = 0)
+
+    diagonals = np.diag(arr)
+
+    if (level == 'micro'):
+        recall = sum(diagonals) * 100 / sum(rows)
+        precision = sum(diagonals) * 100 / sum(columns)
+    elif (level == 'macro'):
+        recall = sum((diagonals / rows)) * 100 / len(diagonals)
+        precision = sum((diagonals / columns)) * 100 / len(diagonals)
+    elif (level == 'weighted'):
+        recall = sum((diagonals / rows) * (rows / np.sum(arr))) * 100
+        precision = sum((diagonals / columns) * (rows / np.sum(arr))) * 100
+
+    return recall, precision
+
+def compute_f_score(recall, precision, beta = 1.0):
+    numerator = (1 + math.pow(beta, 2)) * recall * precision
+    denominator = (math.pow(beta, 2) * precision) + recall
+
+    return numerator/denominator
+
+def evaluate(actual, prediction, level = 'micro', beta = 1.0, draw = False):
+    matrix_df = confusion_matrix(actual, prediction, draw = draw)
+    accuracy = compute_accuracy(matrix_df, prediction)
+    recall, precision = recall_precision(matrix_df, level)
+    f_score = compute_f_score(recall, precision, beta)
+    print(f"{level}\n Accuracy: {accuracy}, Recall: {recall}, Precision: {precision}, F1-Score:{f_score}")
