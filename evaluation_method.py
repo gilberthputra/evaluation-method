@@ -51,4 +51,5 @@ def evaluate(actual, prediction, level = 'micro', beta = 1.0, draw = False):
     accuracy = compute_accuracy(matrix_df, prediction)
     recall, precision = recall_precision(matrix_df, level)
     f_score = compute_f_score(recall, precision, beta)
-    print(f"{level}\n Accuracy: {accuracy}, Recall: {recall}, Precision: {precision}, F1-Score:{f_score}")
+    print(f"{level} | F-beta : {beta} \n \
+          Accuracy: {accuracy:.3f}, Recall: {recall:.3f}, Precision: {precision:.3f}, F-Score:{f_score:.3f} \n")
